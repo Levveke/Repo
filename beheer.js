@@ -1,53 +1,62 @@
-// beheer.js - Beheer van de game en spelers
+// beheer.js - Arena & Player Manager voor een .io game
 
-// 1. Algemene spelstatus en instellingen
-const gameInstellingen = {
-    status: 'START', // Mogelijke statussen: 'START', 'BEZIG', 'PAUZE', 'GAMEOVER'
-    moeilijkheidsgraad: 'normaal',
-    geluidAan: true
+const gameConfig = {
+    maxSpelersPerRoom: 20,
+    mapGrootte: { breedte: 2000, hoogte: 2000 },
+    tickRate: 60 // ververssnelheid van de game loop
 };
 
-// 2. Lijst om spelers en hun scores in op te slaan
-const spelers = [];
+// Map om alle actieve spelers in de arena bij te houden
+const actieveSpelers = new Map();
 
 /**
- * Voegt een nieuwe speler toe aan de game
- * @param {string} naam - De naam van de speler
+ * Speler verbindt met de arena
  */
-function voegSpelerToe(naam) {
-    const nieuweSpeler = {
-        id: spelers.length + 1,
-        naam: naam,
+function spelerVerbinden(spelerId, gebruikersnaam) {
+    if (actieveSpelers.size >= gameConfig.maxSpelersPerRoom) {
+        console.log(`[Lobby Vol] ${gebruikersnaam} kon niet deelnemen.`);
+        return null;
+    }
+
+    const speler = {
+        id: spelerId,
+        naam: gebruikersnaam || 'Gast',
+        // Willekeurige spawnpositie op de map
+        x: Math.floor(Math.random() * gameConfig.mapGrootte.breedte),
+        y: Math.floor(Math.random() * gameConfig.mapGrootte.hoogte),
+        grootte: 10,
         score: 0,
-        levens: 3
+        isAlive: true
     };
-    spelers.push(nieuweSpeler);
-    console.log(`[Beheer] Speler toegevoegd: ${naam}`);
+
+    actieveSpelers.set(spelerId, speler);
+    console.log(`[Join] ${speler.naam} is gespawned op (${speler.x}, ${speler.y})`);
+    return speler;
 }
 
 /**
- * Past de score van een speler aan
- * @param {number} spelerId 
- * @param {number} punten 
+ * Verwijder speler bij disconnect of afvallen
  */
-function voegPuntenToe(spelerId, punten) {
-    const speler = spelers.find(s => s.id === spelerId);
-    if (speler) {
-        speler.score += punten;
-        console.log(`[Beheer] ${speler.naam} heeft nu ${speler.score} punten.`);
+function spelerVerlaat(spelerId) {
+    if (actieveSpelers.has(spelerId)) {
+        const speler = actieveSpelers.get(spelerId);
+        console.log(`[Leave] ${speler.naam} heeft de arena verlaten.`);
+        actieveSpelers.delete(spelerId);
     }
 }
 
 /**
- * Wijzigt de status van het spel (bijv. starten of stoppen)
- * @param {string} nieuweStatus 
+ * Haalt de Top 5 van het leaderboard op
  */
-function veranderStatus(nieuweStatus) {
-    gameInstellingen.status = nieuweStatus;
-    console.log(`[Beheer] Game status gewijzigd naar: ${nieuweStatus}`);
+function haalLeaderboardOp() {
+    const alleSpelers = Array.from(actieveSpelers.values());
+    return alleSpelers
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 5)
+        .map(s => ({ naam: s.naam, score: s.score }));
 }
 
-// --- TEST CODE (om te controleren of het werkt in je terminal/console) ---
-voegSpelerToe("Speler 1");
-voegPuntenToe(1, 50);
-veranderStatus("BEZIG");
+// Exporteer functies voor gebruik in je main game loop
+if (typeof module !== 'undefined') {
+    module.exports = { gameConfig, spelerVerbinden, spelerVerlaat, haalLeaderboardOp };
+}
