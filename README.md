@@ -1,5 +1,5 @@
 Teamleden: Liam (Product), Levi (Manager, Fedde (Marketing), Stan (Kwaliteit)
-Git-Hub naam: Liamlachman, Levveke, Feddemeijvogel, Stan1234
+Git-Hub naam: Liamlachman, Levveke (leviGresnigt), FeddeMeijvogel, Stan1234
 Rollen:
 Marketing bouwt de startpagina: aanbod, uitleg en beginnen
 Manager bouwt een teamoverzicht met taken uit jullie eigen GitHub issues
